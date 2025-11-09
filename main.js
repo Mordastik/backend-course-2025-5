@@ -64,9 +64,6 @@ const server = http.createServer(async (req, res) => {
 
       // --- (PUT) ---
       case 'PUT':
-// ... (код PUT залишається без змін)
-      // --- (PUT) ---
-      case 'PUT':
         try {
           const chunks = [];
           for await (const chunk of req) {
@@ -82,7 +79,22 @@ const server = http.createServer(async (req, res) => {
           throw error; // Кидаємо в загальний обробник 500
         }
         break;
+// --- (DELETE) ---
+      case 'DELETE':
+        try {
+          await fs.unlink(filePath);
 
+          res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('200 OK: Картинку успішно видалено з кешу');
+        } catch (error) {
+          if (error.code === 'ENOENT') {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('404 Not Found: Картинку не знайдено в кеші');
+          } else {
+            throw error;
+          }
+        }
+        break;
       default:
          res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
          res.end('405 Method Not Allowed');
