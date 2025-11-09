@@ -46,6 +46,22 @@ const server = http.createServer(async (req, res) => {
     const filePath = path.join(options.cache, fileName);
 
     switch (req.method) {
+	      // --- (GET) ---
+	      case 'GET':
+	        try {
+	          const data = await fs.readFile(filePath);
+	          res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+	          res.end(data);
+	        } catch (error) {
+	          if (error.code === 'ENOENT') {
+	            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+	            res.end('404 Not Found: Картинку не знайдено в кеші');
+	          } else {
+	            throw error; // В загальний обробник 500
+	          }
+	        }
+	        break;
+
       // --- (PUT) ---
       case 'PUT':
 // ... (код PUT залишається без змін)
