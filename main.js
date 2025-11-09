@@ -1,7 +1,7 @@
 // main.js
 import { Command } from 'commander';
 import http from 'http';
-import fs from 'fs/promises'; // 👈 ВАЖЛИВО: 'fs/promises'
+import fs from 'fs/promises';
 import path from 'path';
 
 const program = new Command();
@@ -17,11 +17,11 @@ const options = program.opts();
 // Перевірка та створення кешу (залишаємо як було)
 try {
   await fs.access(options.cache);
-  console.log(`📁 Директорія кешу знайдена: ${options.cache}`);
+  console.log(`Директорія кешу знайдена: ${options.cache}`);
 } catch (error) {
   if (error.code === 'ENOENT') {
     await fs.mkdir(options.cache, { recursive: true });
-    console.log(`✅ Створено директорію кешу: ${options.cache}`);
+    console.log(`Створено директорію кешу: ${options.cache}`);
   } else {
     console.error('Помилка доступу до директорії кешу:', error);
     process.exit(1);
@@ -42,14 +42,36 @@ const server = http.createServer(async (req, res) => {
 
     const httpCode = match[1];
     const fileName = `${httpCode}.jpeg`;
+
     const filePath = path.join(options.cache, fileName);
 
-    // Тут буде switch (req.method)
+    switch (req.method) {
+      // --- (PUT) ---
+      case 'PUT':
+// ... (код PUT залишається без змін)
+      // --- (PUT) ---
+      case 'PUT':
+        try {
+          const chunks = [];
+          for await (const chunk of req) {
+            chunks.push(chunk);
+          }
+          const data = Buffer.concat(chunks);
 
-    // Поки що, якщо нічого не знайдено, повертаємо 405
-    res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('405 Method Not Allowed (ще не реалізовано)');
+          await fs.writeFile(filePath, data);
 
+          res.writeHead(201, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('201 Created: Картинку успішно збережено/оновлено');
+        } catch (error) {
+          throw error; // Кидаємо в загальний обробник 500
+        }
+        break;
+
+      default:
+         res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
+         res.end('405 Method Not Allowed');
+         break;
+    }
   } catch (error) {
     // Загальний обробник помилок
     console.error('Неочікувана помилка сервера:', error);
@@ -57,8 +79,7 @@ const server = http.createServer(async (req, res) => {
     res.end(`500 Internal Server Error: ${error.message}`);
   }
 });
-// ▲▲▲ КІНЕЦЬ НОВОЇ ЛОГІКИ ▲▲▲
 
 server.listen(options.port, options.host, () => {
-  console.log(`🚀 Сервер запущено на http://${options.host}:${options.port}/`);
+  console.log(`Сервер запущено на http://${options.host}:${options.port}/`);
 });
