@@ -1,0 +1,29 @@
+# Команди для тестування (використовувати в PowerShell/терміналі)
+# Переконайтеся, що сервер запущено: npm run dev -- -H localhost -p 3000 -c cache
+#
+# Також переконайтеся, що у вас є файл "my-image.jpg" у папці проєкту для тестування PUT.
+
+# 1. Тестування PUT (Створення/оновлення):
+#    Очікуємо: HTTP/1.1 201 Created
+curl -X PUT --data-binary "@./my-image.jpg" http://localhost:3000/200 -i
+
+# 2. Тестування GET (Успішне отримання):
+#    Очікуємо: HTTP/1.1 200 OK та Content-Type: image/jpeg
+#    Команда збереже результат у "downloaded-200.jpg"
+curl -X GET http://localhost:3000/200 -o downloaded-200.jpg -i
+
+# 3. Тестування GET (Not Found):
+#    Очікуємо: HTTP/1.1 404 Not Found
+curl -X GET http://localhost:3000/999 -i
+
+# 4. Тестування DELETE (Успішне видалення):
+#    Очікуємо: HTTP/1.1 200 OK
+curl -X DELETE http://localhost:3000/200 -i
+
+# 5. Тестування DELETE (Not Found):
+#    Очікуємо: HTTP/1.1 404 Not Found
+curl -X DELETE http://localhost:3000/200 -i
+
+# 6. Тестування (Method Not Allowed):
+#    Очікуємо: HTTP/1.1 405 Method Not Allowed
+curl -X POST http://localhost:3000/200 -i
